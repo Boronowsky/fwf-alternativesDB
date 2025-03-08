@@ -49,7 +49,7 @@ const Home = () => {
           </div>
           <div className="md:w-1/3">
             <img 
-              src="/illustration-suggestion.svg" 
+              src="/illustration.png" 
               alt="Illustration" 
               className="w-full h-auto"
             />
