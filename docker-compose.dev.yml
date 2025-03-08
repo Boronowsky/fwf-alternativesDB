@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - REACT_APP_API_URL=http://localhost:8100/api
+    depends_on:
+      - backend
+    networks:
+      - fwf-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    ports:
+      - "8100:8100"
+    environment:
+      - NODE_ENV=development
+    env_file:
+      - .env.dev
+    depends_on:
+      - postgres
+    networks:
+      - fwf-network
+
+  postgres:
+    image: postgres:14-alpine
+    volumes:
+      - postgres-data-dev:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d
+    environment:
+      - POSTGRES_DB=fwf_collector_dev
+      - POSTGRES_USER=fwf_user
+      - POSTGRES_PASSWORD=dev_password_change_me
+    ports:
+      - "5432:5432"
+    networks:
+      - fwf-network
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8100:80"
+    volumes:
+      - ./nginx/dev:/etc/nginx/conf.d
+      - ./frontend/build:/usr/share/nginx/html
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - fwf-network
+
+networks:
+  fwf-network:
+    driver: bridge
+
+volumes:
+  postgres-data-dev:

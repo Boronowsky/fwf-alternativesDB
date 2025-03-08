@@ -1,0 +1,64 @@
+# Umgebungsvariablen und Konfiguration
+.env
+.env.*
+!.env.example
+config/*.json
+config/.env.*
+
+# Abhängigkeiten
+node_modules
+.npm
+.yarn
+
+# Build-Verzeichnisse
+/build
+/dist
+/frontend/build
+/frontend/dist
+/backend/dist
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Datenbank-Backups und -Daten
+database/backups
+*.sql.gz
+*.dump
+
+# Betriebssystem-Dateien
+.DS_Store
+Thumbs.db
+.directory
+
+# IDE und Editor-Dateien
+.idea
+.vscode
+*.swp
+*.swo
+*.sublime-*
+.project
+.classpath
+.settings
+
+# Testdateien
+/coverage
+.nyc_output
+
+# Temporäre Dateien
+tmp
+temp
+.tmp
+.temp
+
+# Caches
+.cache
+.parcel-cache
+.eslintcache
+.stylelintcache
+
+# Lokale Dateien
+*.local

@@ -1,0 +1,36 @@
+name: CD
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install Dependencies
+      run: |
+        cd frontend
+        npm ci
+    
+    - name: Build Frontend
+      run: |
+        cd frontend
+        npm run build
+    
+    # Hier würden die Schritte für das Deployment folgen
+    # Dies ist nur ein Platzhalter, da das tatsächliche Deployment 
+    # von Ihrer spezifischen Hosting-Umgebung abhängt
+    
+    # - name: Deploy to Production
+    #   run: |
+    #     # Deployment-Schritte hier

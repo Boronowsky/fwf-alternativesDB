@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    restart: unless-stopped
+    volumes:
+      - frontend-build:/app/build
+    depends_on:
+      - backend
+    networks:
+      - fwf-network-prod
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    restart: unless-stopped
+    env_file:
+      - .env.prod
+    depends_on:
+      - postgres
+    networks:
+      - fwf-network-prod
+
+  postgres:
+    image: postgres:14-alpine
+    restart: unless-stopped
+    volumes:
+      - postgres-data-prod:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=fwf_collector_prod
+      - POSTGRES_USER=fwf_user
+      - POSTGRES_PASSWORD=prod_password_change_me
+    networks:
+      - fwf-network-prod
+
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - ./nginx/prod:/etc/nginx/conf.d
+      - frontend-build:/usr/share/nginx/html
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - fwf-network-prod
+
+networks:
+  fwf-network-prod:
+    driver: bridge
+
+volumes:
+  postgres-data-prod:
+  frontend-build:
