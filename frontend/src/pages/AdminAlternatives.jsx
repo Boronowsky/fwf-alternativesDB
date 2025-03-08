@@ -206,7 +206,7 @@ const AdminAlternatives = () => {
                       className="text-primary-600 hover:text-primary-800"
                   >
                     {alternative.title}
-                    </Link>
+                  </Link>
                    </td>
                    <td className="px-6 py-4 whitespace-nowrap">
                      {alternative.replaces}

@@ -137,7 +137,7 @@ exports.createAlternative = async (req, res) => {
     if (existingAlternative) {
       return res.status(400).json({ 
         message: 'Eine ähnliche Alternative existiert bereits.',
-        alternativeId: existingAlternative.id
+        AlternativeId: existingAlternative.id
       });
     }
 
@@ -222,7 +222,6 @@ exports.deleteAlternative = async (req, res) => {
   }
 };
 
-// Für eine Alternative abstimmen
 exports.voteAlternative = async (req, res) => {
   const { id } = req.params;
   const { type } = req.body; // 'upvote' oder 'downvote'
@@ -241,65 +240,58 @@ exports.voteAlternative = async (req, res) => {
     // Überprüfen, ob der Benutzer bereits abgestimmt hat
     const existingVote = await Vote.findOne({
       where: {
-        userId: req.user.id,
-        alternativeId: id
+        UserId: req.user.id,
+        AlternativeId: id
       }
     });
 
-    const transaction = await sequelize.transaction();
-
-    try {
-if (existingVote) {
-        // Wenn der Benutzer bereits abgestimmt hat
-        if (existingVote.type === type) {
-          // Benutzer stimmt erneut mit dem gleichen Typ ab -> Stimme entfernen
-          await existingVote.destroy({ transaction });
-          
-          // Zähler aktualisieren
-          if (type === 'upvote') {
-            alternative.upvotes -= 1;
-          } else {
-            alternative.upvotes += 1;
-          }
-        } else {
-          // Benutzer ändert seinen Abstimmungstyp
-          existingVote.type = type;
-          await existingVote.save({ transaction });
-          
-          // Zähler um 2 aktualisieren (1 für Entfernen des alten Typs, 1 für Hinzufügen des neuen)
-          if (type === 'upvote') {
-            alternative.upvotes += 2;
-          } else {
-            alternative.upvotes -= 2;
-          }
-        }
-      } else {
-        // Neue Abstimmung erstellen
-        await Vote.create({
-          type,
-          userId: req.user.id,
-          alternativeId: id
-        }, { transaction });
+    // Verwenden Sie keine Transaktion für jetzt
+    if (existingVote) {
+      // Wenn der Benutzer bereits abgestimmt hat
+      if (existingVote.type === type) {
+        // Benutzer stimmt erneut mit dem gleichen Typ ab -> Stimme entfernen
+        await existingVote.destroy();
         
         // Zähler aktualisieren
         if (type === 'upvote') {
-          alternative.upvotes += 1;
-        } else {
           alternative.upvotes -= 1;
+        } else {
+          alternative.upvotes += 1;
+        }
+      } else {
+        // Benutzer ändert seinen Abstimmungstyp
+        existingVote.type = type;
+        await existingVote.save();
+        
+        // Zähler um 2 aktualisieren (1 für Entfernen des alten Typs, 1 für Hinzufügen des neuen)
+        if (type === 'upvote') {
+          alternative.upvotes += 2;
+        } else {
+          alternative.upvotes -= 2;
         }
       }
-
-      await alternative.save({ transaction });
-      await transaction.commit();
-
-      res.json({ 
-        message: 'Abstimmung erfolgreich aktualisiert.', 
-        upvotes: alternative.upvotes 
+    } else {
+      // Neue Abstimmung erstellen
+      await Vote.create({
+        type,
+        UserId: req.user.id,
+        AlternativeId: id
       });
-    } catch (error) {
-      await transaction.rollback();
-      throw error;
+      
+      // Zähler aktualisieren
+      if (type === 'upvote') {
+        alternative.upvotes += 1;
+      } else {
+        alternative.upvotes -= 1;
+      }
     }
+
+    await alternative.save();
+
+    res.json({ 
+      message: 'Abstimmung erfolgreich aktualisiert.', 
+      upvotes: alternative.upvotes 
+    });
   } catch (error) {
     logger.error('Fehler bei der Abstimmung:', error);
     res.status(500).json({ message: 'Serverfehler bei der Abstimmung.' });
@@ -310,7 +302,7 @@ if (existingVote) {
 exports.getComments = async (req, res) => {
   try {
     const comments = await Comment.findAll({
-      where: { alternativeId: req.params.id },
+      where: { AlternativeId: req.params.id },
       include: [
         {
           model: User,
@@ -340,8 +332,8 @@ exports.addComment = async (req, res) => {
 
     const comment = await Comment.create({
       content,
-      userId: req.user.id,
-      alternativeId: req.params.id
+      UserId: req.user.id,        // Großbuchstabe U
+      AlternativeId: req.params.id  // Großbuchstabe A
     });
 
     // Benutzerinformationen für die Antwort abrufen
@@ -383,7 +375,7 @@ exports.checkIfAlternativeExists = async (req, res) => {
         }
       ];
     }
-    
+
     const existingAlternative = await Alternative.findOne({
       where: whereClause
     });

@@ -58,10 +58,14 @@ export const deleteAlternative = async (id) => {
 };
 
 export const upvoteAlternative = async (id) => {
+  console.log(`Sending upvote request to /alternatives/${id}/vote`);
+  console.log('Request body:', { type: 'upvote' });
   try {
-    return await apiClient.post(`/alternatives/${id}/vote`, { type: 'upvote' });
+    const response = await apiClient.post(`/alternatives/${id}/vote`, { type: 'upvote' });
+    console.log('Upvote response:', response);
+    return response;
   } catch (error) {
-    console.error('Error upvoting alternative:', error);
+    console.error('Error details:', error.response?.data);
     throw error;
   }
 };
