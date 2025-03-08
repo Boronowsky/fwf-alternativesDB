@@ -38,7 +38,7 @@ FreeWorldFirst Collector ermöglicht es Benutzern, ethische Alternativen zu gän
 
 2. Installation ausführen:
    ```
-   bash install.sh
+   die scripte sind outdated
    ```
 
 3. Entwicklungsumgebung starten:
@@ -46,7 +46,7 @@ FreeWorldFirst Collector ermöglicht es Benutzern, ethische Alternativen zu gän
    docker-compose -f docker-compose.dev.yml up
    ```
 
-4. Die Anwendung ist nun unter [http://localhost:8100](http://localhost:8100) verfügbar.
+4. Die Anwendung ist nun unter [http://localhost:8181](http://localhost:8181) verfügbar.
 
 ### Verzeichnisstruktur
 
