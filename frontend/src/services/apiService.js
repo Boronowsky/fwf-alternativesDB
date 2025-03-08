@@ -1,9 +1,9 @@
 import axios from 'axios';
 
-const API_URL = process.env.NODE_ENV === 'development' 
-  ? 'http://localhost:8100/api'
-  : 'http://freeworldfirst.com:8000/api';
-
+const API_URL = window.location.hostname === 'localhost' 
+  ? `http://localhost:8181/api`
+  : `http://${window.location.hostname}:8181/api`;
+  
 const apiClient = axios.create({
   baseURL: API_URL,
   headers: {
