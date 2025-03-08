@@ -19,3 +19,14 @@ export const approveAlternative = async (alternativeId, approved) => {
 export const deleteAlternative = async (alternativeId) => {
   return await apiClient.delete(`/alternatives/${alternativeId}`);
 };
+
+// Zu adminService.js hinzufügen
+export const resetUserPassword = async (userId, newPassword) => {
+    return await apiClient.post(`/admin/users/${userId}/reset-password`, { 
+      newPassword 
+    });
+  };
+  
+  export const deleteUser = async (userId) => {
+    return await apiClient.delete(`/admin/users/${userId}`);
+  };

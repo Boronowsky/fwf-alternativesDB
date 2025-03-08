@@ -131,3 +131,60 @@ exports.approveAlternative = async (req, res) => {
     res.status(500).json({ message: 'Serverfehler beim Genehmigen/Ablehnen der Alternative.' });
   }
 };
+
+// In backend/src/controllers/adminController.js hinzufügen
+
+// Benutzerpasswort zurücksetzen
+exports.resetUserPassword = async (req, res) => {
+  const { userId } = req.params;
+  const { newPassword } = req.body;
+
+  try {
+    if (!newPassword) {
+      return res.status(400).json({ message: 'Neues Passwort ist erforderlich.' });
+    }
+
+    const user = await User.findByPk(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'Benutzer nicht gefunden.' });
+    }
+
+    // Passwort aktualisieren (der bcrypt-Hash wird automatisch durch den User-Model-Hook erstellt)
+    user.password = newPassword;
+    await user.save();
+
+    res.json({ message: 'Passwort wurde erfolgreich zurückgesetzt.' });
+  } catch (error) {
+    logger.error('Fehler beim Zurücksetzen des Passworts:', error);
+    res.status(500).json({ message: 'Serverfehler beim Zurücksetzen des Passworts.' });
+  }
+};
+
+// Benutzer löschen
+exports.deleteUser = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const user = await User.findByPk(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'Benutzer nicht gefunden.' });
+    }
+
+    // Verhindern, dass der letzte Admin gelöscht wird
+    if (user.isAdmin) {
+      const adminCount = await User.count({ where: { isAdmin: true } });
+      if (adminCount <= 1) {
+        return res.status(400).json({ message: 'Der letzte Administrator kann nicht gelöscht werden.' });
+      }
+    }
+
+    await user.destroy();
+
+    res.json({ message: 'Benutzer wurde erfolgreich gelöscht.' });
+  } catch (error) {
+    logger.error('Fehler beim Löschen des Benutzers:', error);
+    res.status(500).json({ message: 'Serverfehler beim Löschen des Benutzers.' });
+  }
+};

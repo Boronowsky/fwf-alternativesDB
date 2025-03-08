@@ -38,4 +38,21 @@ router.put(
   adminController.approveAlternative
 );
 
+// In backend/src/routes/adminRoutes.js hinzufügen
+
+// Passwort zurücksetzen
+router.post(
+  '/users/:userId/reset-password',
+  [
+    body('newPassword')
+      .isLength({ min: 8 })
+      .withMessage('Passwort muss mindestens 8 Zeichen lang sein')
+  ],
+  validateRequest,
+  adminController.resetUserPassword
+);
+
+// Benutzer löschen
+router.delete('/users/:userId', adminController.deleteUser);
+
 module.exports = router;

@@ -11,30 +11,32 @@ import AlternativeDetail from './pages/AlternativeDetail';
 import NewAlternative from './pages/NewAlternative';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminAlternatives from './pages/AdminAlternatives';
+import AdminUsers from './pages/AdminUsers'; 
 
 function App() {
-return (
-  <AuthProvider>
-    <Router>
-      <div className="flex flex-col min-h-screen">
-        <Navbar />
-        <main className="flex-grow lime-gradient-light-bg">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/alternatives" element={<Alternatives />} />
-            <Route path="/alternatives/:id" element={<AlternativeDetail />} />
-            <Route path="/alternatives/new" element={<NewAlternative />} />
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/alternatives" element={<AdminAlternatives />} />
-          </Routes>
-        </main>
-        <Footer />
-      </div>
-    </Router>
-  </AuthProvider>
-);
+ return (
+   <AuthProvider>
+     <Router>
+       <div className="flex flex-col min-h-screen">
+         <Navbar />
+         <main className="flex-grow">
+           <Routes>
+             <Route path="/" element={<Home />} />
+             <Route path="/login" element={<Login />} />
+             <Route path="/register" element={<Register />} />
+             <Route path="/alternatives" element={<Alternatives />} />
+             <Route path="/alternatives/:id" element={<AlternativeDetail />} />
+             <Route path="/alternatives/new" element={<NewAlternative />} />
+             <Route path="/admin" element={<AdminDashboard />} />
+             <Route path="/admin/alternatives" element={<AdminAlternatives />} />
+             <Route path="/admin/users" element={<AdminUsers />} />
+           </Routes>
+         </main>
+         <Footer />
+       </div>
+     </Router>
+   </AuthProvider>
+ );
 }
 
 export default App;
