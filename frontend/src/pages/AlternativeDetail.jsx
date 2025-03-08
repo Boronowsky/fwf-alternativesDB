@@ -7,7 +7,15 @@ import TextArea from '../components/TextArea';
 import { getAlternativeById, upvoteAlternative, downvoteAlternative, addComment, getComments } from '../services/alternativeService';
 
 const AlternativeDetail = () => {
-  const { id } = useParams();
+  // Debug-Ausgabe
+  console.log("AlternativeDetail Component rendering");
+  
+  const params = useParams();
+  const id = params.id;
+  
+  // Debug-Ausgabe
+  console.log("ID from params:", id);
+  
   const { user, isAuthenticated } = useContext(AuthContext);
   const navigate = useNavigate();
   
@@ -23,20 +31,34 @@ const AlternativeDetail = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
+        console.log("Fetching alternative with ID:", id);
         const data = await getAlternativeById(id);
+        console.log("Received data:", data);
         setAlternative(data);
         
-        const commentsData = await getComments(id);
-        setComments(commentsData);
+        try {
+          const commentsData = await getComments(id);
+          setComments(commentsData);
+        } catch (commentErr) {
+          console.error("Error loading comments:", commentErr);
+          // Kommentarfehler sind nicht kritisch, daher setzen wir nur leere Kommentare
+          setComments([]);
+        }
         
         setLoading(false);
       } catch (err) {
-        setError('Fehler beim Laden der Alternative.');
+        console.error("Error loading alternative:", err);
+        setError('Fehler beim Laden der Alternative. ' + (err.message || ''));
         setLoading(false);
       }
     };
 
-    fetchData();
+    if (id) {
+      fetchData();
+    } else {
+      setError('Keine gültige ID gefunden');
+      setLoading(false);
+    }
   }, [id]);
 
   const handleUpvote = async () => {
@@ -102,8 +124,22 @@ const AlternativeDetail = () => {
   };
 
   if (loading) return <div className="max-w-7xl mx-auto px-4 py-8"><Loading /></div>;
-  if (error) return <div className="max-w-7xl mx-auto px-4 py-8 bg-red-50 p-4 rounded text-red-800">{error}</div>;
-  if (!alternative) return <div className="max-w-7xl mx-auto px-4 py-8">Alternative nicht gefunden.</div>;
+  if (error) return (
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="bg-red-50 p-4 rounded text-red-800">{error}</div>
+      <Link to="/alternatives" className="mt-4 text-primary-600 hover:text-primary-800 flex items-center">
+        Zurück zu allen Alternativen
+      </Link>
+    </div>
+  );
+  if (!alternative) return (
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      <div>Alternative nicht gefunden.</div>
+      <Link to="/alternatives" className="mt-4 text-primary-600 hover:text-primary-800 flex items-center">
+        Zurück zu allen Alternativen
+      </Link>
+    </div>
+  );
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -125,17 +161,16 @@ const AlternativeDetail = () => {
               <span className="bg-primary-100 text-primary-800 text-sm px-3 py-1 rounded-full">
                 {alternative.category}
               </span>
-              <a 
-                href={alternative.website} 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="ml-4 text-primary-600 hover:text-primary-800 flex items-center"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clipRule="evenodd" />
-                </svg>
-                Website
-              </a>
+              {alternative.website && (
+                <a 
+                  href={alternative.website} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="ml-4 text-primary-600 hover:text-primary-800 flex items-center"
+                >
+                  Website
+                </a>
+              )}
             </div>
           </div>
 
