@@ -48,7 +48,7 @@ FreeWorldFirst Collector ermöglicht es Benutzern, ethische Alternativen zu gän
 
 4. Die Anwendung ist nun [http://localhost:8181](http://localhost:8181) verfügbar.
 oder
-[http://freeworldfirst.com:8181](http://freeworldfirst:8181)
+[http://freeworldfirst.com:8181](http://freeworldfirst.com:8181)
 ### Verzeichnisstruktur
 
 ```
@@ -72,7 +72,7 @@ Um die Anwendung in die Produktionsumgebung zu deployen:
 bash scripts/deployToProd.sh
 ```
 
-Die Produktionsversion ist dann unter [http://freeworldfirst.com:8000](http://freeworldfirst.com:8000) erreichbar.
+Die Produktionsversion ist dann unter [http://freeworldfirst.com:8181](http://freeworldfirst.com:8181) erreichbar.
 
 ## Mitwirken
 
