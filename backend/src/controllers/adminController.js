@@ -1,4 +1,5 @@
 const { Alternative, User, Comment, sequelize } = require('../models');
+const { Op } = require('sequelize');  // Diese Zeile hinzufügen
 const logger = require('../utils/logger');
 
 // Dashboard-Statistiken abrufen
@@ -48,8 +49,8 @@ exports.getUsers = async (req, res) => {
     
     if (search) {
       whereClause[Op.or] = [
-        { username: { [Op.iLike]:  } },
-        { email: { [Op.iLike]:  } }
+        { username: { [Op.iLike]: `%${search}%` } },  // search statt name
+        { email: { [Op.iLike]: `%${search}%` } }     // search statt email
       ];
     }
 
@@ -122,7 +123,7 @@ exports.approveAlternative = async (req, res) => {
     await alternative.save();
 
     res.json({ 
-      message: ,
+      message: `Alternative wurde ${approved ? 'genehmigt' : 'abgelehnt'}.`,
       alternative
     });
   } catch (error) {

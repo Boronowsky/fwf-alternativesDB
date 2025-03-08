@@ -1,3 +1,4 @@
+echo "SKRIPT WIRD AUSGEFÜHRT"
 #!/bin/bash
 # setup_frontend.sh - Erstellt die Frontend-Anwendung für FreeWorldFirst Collector
 
@@ -396,7 +397,7 @@ const AlternativeCard = ({ alternative }) => {
           </svg>
           <span className="text-sm text-gray-600">{alternative.upvotes}</span>
         </div>
-        <Link to={`/alternatives/${alternative.id}`} className="text-primary-600 hover:text-primary-700 text-sm font-medium">
+        <Link to={`/alternatives/\${alternative.id}`} className="text-primary-600 hover:text-primary-700 text-sm font-medium">
           Mehr erfahren &rarr;
         </Link>
       </div>
@@ -1237,3 +1238,20 @@ EOL
 
     log_info "Haupt-App-Dateien wurden erstellt."
 }
+# Hauptprogramm
+main() {
+    log_info "Starte Erstellung der Frontend-Anwendung..."
+    create_package_json
+    create_tailwind_config
+    create_react_app_structure
+    create_css_file
+    create_components
+    create_pages
+    create_contexts
+    create_services
+    create_main_files
+    log_info "Frontend-Anwendung wurde erfolgreich erstellt!"
+}
+
+# Führe das Hauptprogramm aus
+main

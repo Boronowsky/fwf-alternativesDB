@@ -53,7 +53,7 @@ services:
   nginx:
     image: nginx:alpine
     ports:
-      - "8100:80"
+      - "8181:80"
     volumes:
       - ./nginx/dev:/etc/nginx/conf.d
       - ./frontend/build:/usr/share/nginx/html

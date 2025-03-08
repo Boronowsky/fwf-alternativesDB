@@ -369,15 +369,15 @@ exports.checkIfAlternativeExists = async (req, res) => {
     const whereClause = {};
     
     if (name) {
-      whereClause.title = { [Op.iLike]:  };
+      whereClause.title = { [Op.iLike]: `%${name}%` };
     }
     
     if (replaces && category) {
       whereClause[Op.or] = [
-        { title: { [Op.iLike]:  } },
+        { title: { [Op.iLike]: `%${name}%` } },
         { 
           [Op.and]: [
-            { replaces: { [Op.iLike]:  } },
+            { replaces: { [Op.iLike]: `%${replaces}%` } }, // Korrigiert zu replaces
             { category }
           ]
         }
