@@ -46,8 +46,9 @@ FreeWorldFirst Collector ermöglicht es Benutzern, ethische Alternativen zu gän
    docker-compose -f docker-compose.dev.yml up
    ```
 
-4. Die Anwendung ist nun unter [http://localhost:8181](http://localhost:8181) verfügbar.
-
+4. Die Anwendung ist nun [http://localhost:8181](http://localhost:8181) verfügbar.
+oder
+[http://freeworldfirst.com:8181](http://freeworldfirst:8181)
 ### Verzeichnisstruktur
 
 ```
