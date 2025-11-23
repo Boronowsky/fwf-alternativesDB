@@ -1,4 +1,4 @@
-const { Alternative, User, Comment, Vote, sequelize } = require('../models');
+const { Alternative, User, Comment, Vote, Tag, sequelize } = require('../models');
 const logger = require('../utils/logger');
 const { Op } = require('sequelize');
 
@@ -11,22 +11,44 @@ exports.getAlternatives = async (req, res) => {
     const category = req.query.category;
     const search = req.query.search;
     const approved = req.query.approved === 'true';
+    const tags = req.query.tags; // Comma-separated tag IDs
+    const sortBy = req.query.sortBy || 'createdAt'; // createdAt, upvotes, title
+    const sortOrder = req.query.sortOrder || 'DESC'; // ASC or DESC
 
     const whereClause = {};
-    
+    const include = [
+      {
+        model: User,
+        as: 'submitter',
+        attributes: ['id', 'username']
+      },
+      {
+        model: Tag,
+        attributes: ['id', 'name', 'slug', 'color']
+      }
+    ];
+
     // Filter nach Kategorie
     if (category) {
       whereClause.category = category;
     }
-    
-    // Suche nach Titel oder ersetztem Produkt
+
+    // Erweiterte Suche nach Titel, ersetztem Produkt, Beschreibung
     if (search) {
       whereClause[Op.or] = [
         { title: { [Op.iLike]: `%${search}%` } },
-        { replaces: { [Op.iLike]: `%${search}%` } }
+        { replaces: { [Op.iLike]: `%${search}%` } },
+        { description: { [Op.iLike]: `%${search}%` } }
       ];
     }
-    
+
+    // Filter nach Tags
+    if (tags) {
+      const tagIds = tags.split(',');
+      include[1].where = { id: tagIds };
+      include[1].required = true; // INNER JOIN instead of LEFT JOIN
+    }
+
     // Filter nach Genehmigungsstatus
     if (!req.user?.isAdmin) {
       whereClause.approved = true;
@@ -34,18 +56,19 @@ exports.getAlternatives = async (req, res) => {
       whereClause.approved = approved;
     }
 
+    // Sortierung validieren
+    const validSortFields = ['createdAt', 'upvotes', 'title'];
+    const validSortOrders = ['ASC', 'DESC'];
+    const orderField = validSortFields.includes(sortBy) ? sortBy : 'createdAt';
+    const orderDirection = validSortOrders.includes(sortOrder.toUpperCase()) ? sortOrder.toUpperCase() : 'DESC';
+
     const { count, rows } = await Alternative.findAndCountAll({
       where: whereClause,
       limit,
       offset,
-      include: [
-        {
-          model: User,
-          as: 'submitter',
-          attributes: ['id', 'username']
-        }
-      ],
-      order: [['createdAt', 'DESC']]
+      include,
+      order: [[orderField, orderDirection]],
+      distinct: true // Important for correct count with includes
     });
 
     res.json({
@@ -73,6 +96,10 @@ exports.getLatestAlternatives = async (req, res) => {
           model: User,
           as: 'submitter',
           attributes: ['id', 'username']
+        },
+        {
+          model: Tag,
+          attributes: ['id', 'name', 'slug', 'color']
         }
       ],
       order: [['createdAt', 'DESC']]
@@ -94,6 +121,10 @@ exports.getAlternativeById = async (req, res) => {
           model: User,
           as: 'submitter',
           attributes: ['id', 'username']
+        },
+        {
+          model: Tag,
+          attributes: ['id', 'name', 'slug', 'color']
         }
       ]
     });
@@ -230,10 +261,13 @@ exports.voteAlternative = async (req, res) => {
     return res.status(400).json({ message: 'Ungültiger Abstimmungstyp.' });
   }
 
+  const transaction = await sequelize.transaction();
+
   try {
-    const alternative = await Alternative.findByPk(id);
+    const alternative = await Alternative.findByPk(id, { transaction });
 
     if (!alternative) {
+      await transaction.rollback();
       return res.status(404).json({ message: 'Alternative nicht gefunden.' });
     }
 
@@ -242,16 +276,16 @@ exports.voteAlternative = async (req, res) => {
       where: {
         UserId: req.user.id,
         AlternativeId: id
-      }
+      },
+      transaction
     });
 
-    // Verwenden Sie keine Transaktion für jetzt
     if (existingVote) {
       // Wenn der Benutzer bereits abgestimmt hat
       if (existingVote.type === type) {
         // Benutzer stimmt erneut mit dem gleichen Typ ab -> Stimme entfernen
-        await existingVote.destroy();
-        
+        await existingVote.destroy({ transaction });
+
         // Zähler aktualisieren
         if (type === 'upvote') {
           alternative.upvotes -= 1;
@@ -261,8 +295,8 @@ exports.voteAlternative = async (req, res) => {
       } else {
         // Benutzer ändert seinen Abstimmungstyp
         existingVote.type = type;
-        await existingVote.save();
-        
+        await existingVote.save({ transaction });
+
         // Zähler um 2 aktualisieren (1 für Entfernen des alten Typs, 1 für Hinzufügen des neuen)
         if (type === 'upvote') {
           alternative.upvotes += 2;
@@ -276,8 +310,8 @@ exports.voteAlternative = async (req, res) => {
         type,
         UserId: req.user.id,
         AlternativeId: id
-      });
-      
+      }, { transaction });
+
       // Zähler aktualisieren
       if (type === 'upvote') {
         alternative.upvotes += 1;
@@ -286,13 +320,15 @@ exports.voteAlternative = async (req, res) => {
       }
     }
 
-    await alternative.save();
+    await alternative.save({ transaction });
+    await transaction.commit();
 
-    res.json({ 
-      message: 'Abstimmung erfolgreich aktualisiert.', 
-      upvotes: alternative.upvotes 
+    res.json({
+      message: 'Abstimmung erfolgreich aktualisiert.',
+      upvotes: alternative.upvotes
     });
   } catch (error) {
+    await transaction.rollback();
     logger.error('Fehler bei der Abstimmung:', error);
     res.status(500).json({ message: 'Serverfehler bei der Abstimmung.' });
   }

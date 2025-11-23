@@ -3,12 +3,14 @@ const { body } = require('express-validator');
 const authController = require('../controllers/authController');
 const { protect } = require('../middlewares/auth');
 const validateRequest = require('../middlewares/validateRequest');
+const { authLimiter } = require('../middlewares/rateLimiter');
 
 const router = express.Router();
 
 // Benutzer registrieren
 router.post(
   '/register',
+  authLimiter,
   [
     body('username')
       .isLength({ min: 3, max: 20 })
@@ -29,6 +31,7 @@ router.post(
 // Benutzer anmelden
 router.post(
   '/login',
+  authLimiter,
   [
     body('email')
       .isEmail()

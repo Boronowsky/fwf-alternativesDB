@@ -74,24 +74,7 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: 'Ungültige E-Mail oder Passwort.' });
     }
 
-    // Passwort überprüfen - direkter Vergleich für Test-Zwecke
-    // Für den Admin-Benutzer mit dem festen Hash
-    if (email === 'admin@example.com' && password === 'password123') {
-      // Token generieren
-      const token = generateToken(user.id, user.username, user.email, user.isAdmin);
-
-      return res.json({
-        token,
-        user: {
-          id: user.id,
-          username: user.username,
-          email: user.email,
-          isAdmin: user.isAdmin
-        }
-      });
-    }
-
-    // Für normale Benutzer bcrypt verwenden
+    // Passwort überprüfen
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {

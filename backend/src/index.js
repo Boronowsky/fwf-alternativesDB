@@ -6,6 +6,7 @@ const { sequelize, testConnection } = require('./config/database');
 const routes = require('./routes');
 const logger = require('./utils/logger');
 const errorHandler = require('./middlewares/errorHandler');
+const { apiLimiter } = require('./middlewares/rateLimiter');
 const config = require('./config/config')[process.env.NODE_ENV === 'production' ? 'production' : 'development'];
 
 // Initialisiere Express-App
@@ -13,10 +14,20 @@ const app = express();
 const PORT = config.port;
 
 // Middlewares
+const allowedOrigins = config.corsOrigin.split(',');
 app.use(cors({
-  origin: '*',
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes('*')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 }));
 app.use(helmet());
 app.use(express.json());
@@ -28,6 +39,9 @@ app.use(morgan('dev', {
     write: (message) => logger.info(message.trim())
   }
 }));
+
+// Rate Limiting
+app.use('/api', apiLimiter);
 
 // API-Routen
 app.use('/api', routes);
@@ -54,16 +68,21 @@ const startServer = async () => {
   try {
     // Teste Datenbankverbindung
     const dbConnected = await testConnection();
-    
+
     if (!dbConnected) {
       logger.error('Datenbankverbindung konnte nicht hergestellt werden. Server wird nicht gestartet.');
       process.exit(1);
     }
-    
+
     // Synchronisiere Modelle mit der Datenbank
     await sequelize.sync({ alter: true });
     logger.info('Datenbankmodelle wurden synchronisiert.');
-    
+
+    // Seed initial data
+    const { seedTags, seedAdmin } = require('./utils/seedData');
+    await seedTags();
+    await seedAdmin();
+
     // Starte den Server
     app.listen(PORT, () => {
       logger.info(`Server läuft im ${process.env.NODE_ENV || 'development'}-Modus auf Port ${PORT}`);
