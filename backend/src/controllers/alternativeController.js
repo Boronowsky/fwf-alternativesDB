@@ -147,7 +147,7 @@ exports.getAlternativeById = async (req, res) => {
 
 // Neue Alternative erstellen
 exports.createAlternative = async (req, res) => {
-  const { title, replaces, description, reasons, benefits, website, category } = req.body;
+  const { title, replaces, description, reasons, benefits, website, category, tags } = req.body;
 
   try {
     // Überprüfen, ob eine ähnliche Alternative bereits existiert
@@ -155,7 +155,7 @@ exports.createAlternative = async (req, res) => {
       where: {
         [Op.or]: [
           { title: { [Op.iLike]: title } },
-          { 
+          {
             [Op.and]: [
               { replaces: { [Op.iLike]: replaces } },
               { category }
@@ -166,7 +166,7 @@ exports.createAlternative = async (req, res) => {
     });
 
     if (existingAlternative) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         message: 'Eine ähnliche Alternative existiert bereits.',
         AlternativeId: existingAlternative.id
       });
@@ -184,7 +184,22 @@ exports.createAlternative = async (req, res) => {
       approved: req.user.isAdmin // Automatisch genehmigt, wenn vom Admin erstellt
     });
 
-    res.status(201).json(alternative);
+    // Tags zuweisen, wenn vorhanden
+    if (tags && Array.isArray(tags) && tags.length > 0) {
+      await alternative.setTags(tags);
+    }
+
+    // Alternative mit Tags zurückgeben
+    const alternativeWithTags = await Alternative.findByPk(alternative.id, {
+      include: [
+        {
+          model: Tag,
+          attributes: ['id', 'name', 'slug', 'color']
+        }
+      ]
+    });
+
+    res.status(201).json(alternativeWithTags);
   } catch (error) {
     logger.error('Fehler beim Erstellen der Alternative:', error);
     res.status(500).json({ message: 'Serverfehler beim Erstellen der Alternative.' });
@@ -193,7 +208,7 @@ exports.createAlternative = async (req, res) => {
 
 // Alternative aktualisieren
 exports.updateAlternative = async (req, res) => {
-  const { title, replaces, description, reasons, benefits, website, category, approved } = req.body;
+  const { title, replaces, description, reasons, benefits, website, category, approved, tags } = req.body;
 
   try {
     const alternative = await Alternative.findByPk(req.params.id);
@@ -215,7 +230,7 @@ exports.updateAlternative = async (req, res) => {
     alternative.benefits = benefits || alternative.benefits;
     alternative.website = website || alternative.website;
     alternative.category = category || alternative.category;
-    
+
     // Nur Admins können den Genehmigungsstatus ändern
     if (req.user.isAdmin && approved !== undefined) {
       alternative.approved = approved;
@@ -223,7 +238,22 @@ exports.updateAlternative = async (req, res) => {
 
     await alternative.save();
 
-    res.json(alternative);
+    // Tags aktualisieren, wenn vorhanden
+    if (tags && Array.isArray(tags)) {
+      await alternative.setTags(tags);
+    }
+
+    // Alternative mit Tags zurückgeben
+    const alternativeWithTags = await Alternative.findByPk(alternative.id, {
+      include: [
+        {
+          model: Tag,
+          attributes: ['id', 'name', 'slug', 'color']
+        }
+      ]
+    });
+
+    res.json(alternativeWithTags);
   } catch (error) {
     logger.error('Fehler beim Aktualisieren der Alternative:', error);
     res.status(500).json({ message: 'Serverfehler beim Aktualisieren der Alternative.' });
