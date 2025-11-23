@@ -79,9 +79,8 @@ const startServer = async () => {
     logger.info('Datenbankmodelle wurden synchronisiert.');
 
     // Seed initial data
-    const { seedTags, seedAdmin } = require('./utils/seedData');
-    await seedTags();
-    await seedAdmin();
+    const { seedAll } = require('./utils/seedData');
+    await seedAll();
 
     // Starte den Server
     app.listen(PORT, () => {

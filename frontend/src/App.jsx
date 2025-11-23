@@ -13,6 +13,7 @@ import NewAlternative from './pages/NewAlternative';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminAlternatives from './pages/AdminAlternatives';
 import AdminUsers from './pages/AdminUsers';
+import AdminTags from './pages/AdminTags';
 
 function App() {
   return (
@@ -56,6 +57,14 @@ function App() {
                 element={
                   <ProtectedRoute requireAdmin>
                     <AdminUsers />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/tags"
+                element={
+                  <ProtectedRoute requireAdmin>
+                    <AdminTags />
                   </ProtectedRoute>
                 }
               />
